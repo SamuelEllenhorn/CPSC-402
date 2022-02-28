@@ -7,6 +7,8 @@
 \usepackage{amssymb}
 \usepackage{fullpage}
 \usepackage{graphicx}
+
+\usepackage{tikz}
 \usepackage[usenames]{color}
 \usepackage{hyperref}
   \hypersetup{
@@ -192,6 +194,78 @@ This section will contain your solutions to homework.
  
 \subsection{Week 2}
 
+\subsection{Week 3}
+
+
+\subsubsection{3.2.4}
+
+Convert the following regular expressions to NFAs.
+\\
+
+01*:
+\begin{center}
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (3.2,-9.2) circle (3);
+\draw (3.2,-9.2) node {$S_1$};
+\draw [black] (20.9,-9) circle (3);
+\draw (20.9,-9) node {$S_2$};
+\draw [black] (6.2,-9.17) -- (17.9,-9.03);
+\fill [black] (17.9,-9.03) -- (17.09,-8.54) -- (17.11,-9.54);
+\draw (12.05,-9.61) node [below] {$0$};
+\draw [black] (19.577,-6.32) arc (234:-54:2.25);
+\draw (20.9,-1.75) node [above] {$1$};
+\fill [black] (22.22,-6.32) -- (23.1,-5.97) -- (22.29,-5.38);
+\end{tikzpicture}
+\end{center}
+
+(0 + 1)01:
+\begin{center}
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (3.3,-3.2) circle (3);
+\draw [black] (21.3,-3.4) circle (3);
+\draw [black] (39,-3.2) circle (3);
+\draw [black] (59.1,-3.2) circle (3);
+\draw [black] (6.3,-3.23) -- (18.3,-3.37);
+\fill [black] (18.3,-3.37) -- (17.51,-2.86) -- (17.49,-3.86);
+\draw (12.3,-3.82) node [below] {$0,1$};
+\draw [black] (24.3,-3.37) -- (36,-3.23);
+\fill [black] (36,-3.23) -- (35.19,-2.74) -- (35.21,-3.74);
+\draw (30.15,-3.81) node [below] {$0$};
+\draw [black] (42,-3.2) -- (56.1,-3.2);
+\fill [black] (56.1,-3.2) -- (55.3,-2.7) -- (55.3,-3.7);
+\draw (49.05,-3.7) node [below] {$1$};
+\end{tikzpicture}
+\end{center}
+
+
+00(0 + 1)*:
+\begin{center}
+\begin{tikzpicture}[scale=0.2]
+\tikzstyle{every node}+=[inner sep=0pt]
+\draw [black] (25.9,-9.2) circle (3);
+\draw (25.9,-9.2) node {$S_1$};
+\draw [black] (43.6,-9) circle (3);
+\draw (43.6,-9) node {$S_2$};
+\draw [black] (3.2,-9.3) circle (3);
+\draw (3.2,-9.3) node {$S_0$};
+\draw [black] (28.9,-9.17) -- (40.6,-9.03);
+\fill [black] (40.6,-9.03) -- (39.79,-8.54) -- (39.81,-9.54);
+\draw (34.75,-9.61) node [below] {$0$};
+\draw [black] (42.277,-6.32) arc (234:-54:2.25);
+\draw (43.6,-1.75) node [above] {$1$};
+\fill [black] (44.92,-6.32) -- (45.8,-5.97) -- (44.99,-5.38);
+\draw [black] (6.2,-9.29) -- (22.9,-9.21);
+\fill [black] (22.9,-9.21) -- (22.1,-8.72) -- (22.1,-9.72);
+\draw (14.55,-9.75) node [below] {$0$};
+\end{tikzpicture}
+\end{center}
+
+
+
+
+
 \ldots
 
 \section{Project}
@@ -222,16 +296,3 @@ In the conclusion, I want a critical reflection on the content of the course. St
 \end{thebibliography}
 
 \end{document}
-© 2022 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-Loading complete
