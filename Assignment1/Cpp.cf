@@ -17,7 +17,16 @@ SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
 SBlock.      Stm ::= "{" [Stm] "}" ;
 SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
 
+
+
+
 terminator Stm "" ;
+
+
+
+
+
+
 
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
@@ -27,6 +36,7 @@ EString. Exp15  ::= String ;
 EId.     Exp15  ::= Id ; 
 
 EApp.    Exp15  ::= Id "(" [Exp] ")" ;
+
 
 EPIncr.  Exp14  ::= Exp15 "++" ;
 EPDecr.  Exp14  ::= Exp15 "--" ;
