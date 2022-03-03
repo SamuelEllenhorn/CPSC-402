@@ -28,12 +28,16 @@ terminator Stm "" ;
 
 
 
+
+
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
 EInt.    Exp15  ::= Integer ;
 EDouble. Exp15  ::= Double ;
 EString. Exp15  ::= String ;
 EId.     Exp15  ::= Id ; 
+
+
 
 EApp.    Exp15  ::= Id "(" [Exp] ")" ;
 
@@ -43,6 +47,8 @@ EPDecr.  Exp14  ::= Exp15 "--" ;
 
 EIncr.   Exp13  ::= "++" Exp14 ;
 EDecr.   Exp13  ::= "--" Exp14 ;
+
+ECons.   Exp12 ::= Exp12 "::"Exp12;
 
 ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;
 EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
@@ -58,6 +64,16 @@ EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
 EOr.     Exp3   ::= Exp3  "||" Exp4 ;
 EAss.    Exp2   ::= Exp3 "=" Exp2 ;
 
+Etype1.    Exp1  ::= Exp12 "<<" [Exp];
+
+
+
+
+
+
+
+
+
 internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ;
 
 coercions Exp 15 ;
@@ -69,6 +85,16 @@ rules Type   ::= "bool" | "int" | "double" | "void" | "string" ;
 token Id (letter (letter | digit | '_')*) ;
 
 separator nonempty Id "," ;
+
+
+
+
+
+
+
+
+
+
 
 comment "#" ;
 comment "//" ;
