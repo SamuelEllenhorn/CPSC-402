@@ -4,10 +4,6 @@ DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
 
 terminator Def "" ;
 
-
-
-
-
 ADecl.   Arg    ::= Type Id ;
 
 separator Arg "," ;
@@ -21,19 +17,7 @@ SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
 SBlock.      Stm ::= "{" [Stm] "}" ;
 SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
 
-
-
-
-
 terminator Stm "" ;
-
-
-
-EStr.  Exp15 ::= """ Exp15 """;
-
-
-
-
 
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
@@ -41,13 +25,9 @@ EInt.    Exp15  ::= Integer ;
 EDouble. Exp15  ::= Double ;
 EString. Exp15  ::= String ;
 EId.     Exp15  ::= Id ; 
-
-
-
-
+EStd.    Exp15  ::= Std; -- add standard library namespace
 
 EApp.    Exp15  ::= Id "(" [Exp] ")" ;
-
 
 EPIncr.  Exp14  ::= Exp15 "++" ;
 EPDecr.  Exp14  ::= Exp15 "--" ;
@@ -55,22 +35,12 @@ EPDecr.  Exp14  ::= Exp15 "--" ;
 EIncr.   Exp13  ::= "++" Exp14 ;
 EDecr.   Exp13  ::= "--" Exp14 ;
 
-
-
-ECons. Exp15 ::= Exp "::" Exp ;
-
-
-
 ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;
 EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
 EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
 EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
-
-
-
-ELs. Exp10 ::= Exp10 "<<" Exp11;
-ERs. Exp10 ::= Exp10 ">>" Exp11;
-
+ELs.     Exp10   ::= Exp10  "<<"  Exp11 ; -- add left shift operator
+ERs.     Exp10   ::= Exp10  ">>"  Exp11 ; -- add right shift operator
 ELt.     Exp9   ::= Exp9  "<"  Exp10 ;
 EGt.     Exp9   ::= Exp9  ">"  Exp10 ;
 ELtEq.   Exp9   ::= Exp9  "<=" Exp10 ;
@@ -81,51 +51,23 @@ EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
 EOr.     Exp3   ::= Exp3  "||" Exp4 ;
 EAss.    Exp2   ::= Exp3 "=" Exp2 ;
 
-
-
-
-
-
-
-
-
-
-
 internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ;
 
 coercions Exp 15 ;
 
 separator Exp "," ;
 
-
 rules Type   ::= "bool" | "int" | "double" | "void" | "string" ;
-rules RandString    ::= Id | Id "<" [Type] ">" | "string"; 
-StanDef.  StanDard  ::= [RandString] ; 
 
-separator nonempty Id "," ;  
-separator nonempty String "";
-
-separator nonempty RandString "::" ;
-
-
-
-
+rules TemplateDecl ::= Id | Id "<" [Type] ">" | "string"; -- add c++ template declaration
+StdDef. Std ::= [TemplateDecl]; -- add template decl for separation
 
 token Id (letter (letter | digit | '_')*) ;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+separator nonempty Id "," ;  --all nonempty separators added with different types that it separates
+separator nonempty String "";
+separator nonempty Type ","  ;
+separator nonempty TemplateDecl "::" ; 
 
 comment "#" ;
 comment "//" ;
