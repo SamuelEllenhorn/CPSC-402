@@ -29,8 +29,10 @@ EStd.    Exp15  ::= Std; -- add standard library namespace
 
 EApp.    Exp15  ::= Id "(" [Exp] ")" ;
 
+
 EPIncr.  Exp14  ::= Exp15 "++" ;
 EPDecr.  Exp14  ::= Exp15 "--" ;
+
 
 EIncr.   Exp13  ::= "++" Exp14 ;
 EDecr.   Exp13  ::= "--" Exp14 ;
@@ -64,7 +66,7 @@ StdDef. Std ::= [TemplateDecl]; -- add template decl for separation
 
 token Id (letter (letter | digit | '_')*) ;
 
-separator nonempty Id "," ;  --all nonempty separators added with different types that it separates
+separator nonempty Id "," ;  
 separator nonempty String "";
 separator nonempty Type ","  ;
 separator nonempty TemplateDecl "::" ; 
