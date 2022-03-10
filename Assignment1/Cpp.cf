@@ -1,13 +1,21 @@
 PDefs.   Program ::= [Def] ;
+
 DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+
 -- med.cc
-DUsing. Def ::= "using" QConst ";" ; 
+
+DUsing. Def ::= "using" QConst ";" ; --added 
 -- greet.cc
-DDecl. Def ::= Type [Id] ;
-DTypedef. Def ::= "typedef" Type Id ";" ; 
+
+DDecl. Def ::= Type [Id] ;       --added
+DTypedef. Def ::= "typedef" Type Id ";" ;   --added
+
 terminator Def "" ;
+
 ADecl.   Arg    ::= Type Id ;
-separator Arg "," ;
+
+separator Arg "," ; 
+
 SExp.        Stm ::= Exp ";" ;
 SDecls.      Stm ::= Type [Id] ";" ;
 SInit.       Stm ::= Type Id "=" Exp ";" ;
@@ -18,28 +26,41 @@ SBlock.      Stm ::= "{" [Stm] "}" ;
 SIf.         Stm ::= "if" "(" Exp ")" Stm ; -- need a single if statement w/o else
 SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
 STypedef. Stm ::= "typedef" Type Id ";" ; -- make typedef a statement for use within functions
+
 terminator Stm "" ;
+
 ELit.     Exp16 ::= [String] ; -- used for string literal lists
 separator nonempty String "";
+
 -- hello.cc
+
 EQConst.    Exp15  ::= QConst ; -- qualified constant type
 QConstName. QConst ::= Name ; -- consists of a name
 QConstList. QConst ::= QConst "::" Name ; -- names can be joined to form list
 NameId.     Name   ::= Id ; -- names can be an id
 NameTempId. Name   ::= Id "<" Type ">" ; -- names can be an id with template type
+
+
+
 EIndex.  Exp15  ::= Id "[" Exp "]" ; -- add indexing with any expression
+
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
 EInt.    Exp15  ::= Integer ;
 EDouble. Exp15  ::= Double ;
 EString. Exp15  ::= String ;
 EId.     Exp15  ::= Id ; 
+
 EApp.    Exp15  ::= Id "(" [Exp] ")" ;
+
 EProj.   Exp14  ::= Exp15 "." Exp14 ; -- structure projection
+
 EPIncr.  Exp14  ::= Exp15 "++" ;
 EPDecr.  Exp14  ::= Exp15 "--" ;
+
 EIncr.   Exp13  ::= "++" Exp14 ;
 EDecr.   Exp13  ::= "--" Exp14 ;
+
 ETimes.   Exp12  ::= Exp12 "*"  Exp13 ;
 EDiv.     Exp12  ::= Exp12 "/"  Exp13 ;
 EMod.     Exp12  ::= Exp12 "%"  Exp13 ; -- mod added for med.cc
@@ -58,17 +79,26 @@ EOr.      Exp3   ::= Exp3  "||" Exp4 ;
 EAss.     Exp2   ::= Exp3 "=" Exp2 ;
 ETernary. Exp2   ::= Exp2 "?" Exp2 ":" Exp2 ; -- ternary operator added for med.cc
 EThrow.   Exp1   ::= "throw" Id "(" Exp ")" ; -- throw exception for grade.cc
+
 internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ;
+
 coercions Exp 16 ; -- change coercions to 16 for ELit.
+
 separator Exp "," ;
+
 TypeQConst. Type ::= QConst ; -- a type for qualified constants
 TypePreModify. Type ::= PreModifier Type ; -- a new type with a modifier to another type
-TypePostModifiy. Type ::= Type PostModifier ; -- "
+TypePostModifiy. Type ::= Type PostModifier ; -- added
+
 rules Type   ::= "bool" | "int" | "double" | "void" ;
+
 rules PreModifier ::= "const" ; -- adding new rules pre-modifying types
 rules PostModifier ::= "&" | "*"; -- adding new rules for post-modifying types
+
 token Id (letter (letter | digit | '_')*) ;
-separator nonempty Id "," ;  --all nonempty separators added with different types that it separates
+
+separator nonempty Id "," ;  --(Not added) all nonempty separators added with different types that it separates
+
 comment "#" ;
 comment "//" ;
 comment "/*" "*/" ;
