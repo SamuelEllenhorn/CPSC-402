@@ -4,17 +4,17 @@ DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
 
 -- med.cc
 
-DUsing. Def ::= "using" QConst ";" ; --added 
+DUsing. Def ::= "using" QConst ";" ; 
 -- greet.cc
 
-DDecl. Def ::= Type [Id] ;       --added
-DTypedef. Def ::= "typedef" Type Id ";" ;   --added
+DDecl. Def ::= Type [Id] ;
+DTypedef. Def ::= "typedef" Type Id ";" ; 
 
 terminator Def "" ;
 
 ADecl.   Arg    ::= Type Id ;
 
-separator Arg "," ; 
+separator Arg "," ;
 
 SExp.        Stm ::= Exp ";" ;
 SDecls.      Stm ::= Type [Id] ";" ;
@@ -39,8 +39,6 @@ QConstName. QConst ::= Name ; -- consists of a name
 QConstList. QConst ::= QConst "::" Name ; -- names can be joined to form list
 NameId.     Name   ::= Id ; -- names can be an id
 NameTempId. Name   ::= Id "<" Type ">" ; -- names can be an id with template type
-
-
 
 EIndex.  Exp15  ::= Id "[" Exp "]" ; -- add indexing with any expression
 
@@ -88,7 +86,7 @@ separator Exp "," ;
 
 TypeQConst. Type ::= QConst ; -- a type for qualified constants
 TypePreModify. Type ::= PreModifier Type ; -- a new type with a modifier to another type
-TypePostModifiy. Type ::= Type PostModifier ; -- added
+TypePostModifiy. Type ::= Type PostModifier ; -- "
 
 rules Type   ::= "bool" | "int" | "double" | "void" ;
 
@@ -97,7 +95,7 @@ rules PostModifier ::= "&" | "*"; -- adding new rules for post-modifying types
 
 token Id (letter (letter | digit | '_')*) ;
 
-separator nonempty Id "," ;  --(Not added) all nonempty separators added with different types that it separates
+separator nonempty Id "," ;  --all nonempty separators added with different types that it separates
 
 comment "#" ;
 comment "//" ;
