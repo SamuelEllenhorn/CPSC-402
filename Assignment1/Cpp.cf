@@ -1,16 +1,8 @@
-PDefs.   Program ::= [Def] ;
+PDefs.   Program ::= [Def] ; 
 
 DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
 
--- med.cc
-
-DUsing. Def ::= "using" QConst ";" ; 
--- greet.cc
-
-DDecl. Def ::= Type [Id] ;
-DTypedef. Def ::= "typedef" Type Id ";" ; 
-
-terminator Def "" ;
+terminator Def "" ; 
 
 ADecl.   Arg    ::= Type Id ;
 
@@ -23,79 +15,65 @@ SReturn.     Stm ::= "return" Exp ";" ;
 SReturnVoid. Stm ::= "return" ";" ;
 SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
 SBlock.      Stm ::= "{" [Stm] "}" ;
-SIf.         Stm ::= "if" "(" Exp ")" Stm ; -- need a single if statement w/o else
 SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
-STypedef. Stm ::= "typedef" Type Id ";" ; -- make typedef a statement for use within functions
 
-terminator Stm "" ;
+terminator Stm "" ;-- end of statement can be empty
 
-ELit.     Exp16 ::= [String] ; -- used for string literal lists
-separator nonempty String "";
-
--- hello.cc
-
-EQConst.    Exp15  ::= QConst ; -- qualified constant type
-QConstName. QConst ::= Name ; -- consists of a name
-QConstList. QConst ::= QConst "::" Name ; -- names can be joined to form list
-NameId.     Name   ::= Id ; -- names can be an id
-NameTempId. Name   ::= Id "<" Type ">" ; -- names can be an id with template type
-
-EIndex.  Exp15  ::= Id "[" Exp "]" ; -- add indexing with any expression
+QIdColId.    QId ::= QId "::" Id; --added for hello only time it can show is when there is a qualified ID
+QIdId.  QId ::= Id; --QId can either be an Id or a QId followed by a :: and an Id
 
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
 EInt.    Exp15  ::= Integer ;
 EDouble. Exp15  ::= Double ;
 EString. Exp15  ::= String ;
-EId.     Exp15  ::= Id ; 
+EId.     Exp15  ::= QId; --changed from Id to QId for Hello
+                                 
+ 
 
-EApp.    Exp15  ::= Id "(" [Exp] ")" ;
+EApp.    Exp15  ::= QId "(" [Exp] ")" ; --^^
 
-EProj.   Exp14  ::= Exp15 "." Exp14 ; -- structure projection
-
-EPIncr.  Exp14  ::= Exp15 "++" ;
+EPIncr.  Exp14  ::= Exp15 "++" ; --post inc
 EPDecr.  Exp14  ::= Exp15 "--" ;
 
-EIncr.   Exp13  ::= "++" Exp14 ;
+EIncr.   Exp13  ::= "++" Exp14 ; --pre inc
 EDecr.   Exp13  ::= "--" Exp14 ;
 
-ETimes.   Exp12  ::= Exp12 "*"  Exp13 ;
-EDiv.     Exp12  ::= Exp12 "/"  Exp13 ;
-EMod.     Exp12  ::= Exp12 "%"  Exp13 ; -- mod added for med.cc
-EPlus.    Exp11  ::= Exp11 "+"  Exp12 ;
-EMinus.   Exp11  ::= Exp11 "-"  Exp12 ;
-ELs.      Exp10   ::= Exp10  "<<"  Exp11 ; -- add left shift operator for hello.cc
-ERs.      Exp10   ::= Exp10  ">>"  Exp11 ; -- add right shift operator for hello.cc
-ELt.      Exp9   ::= Exp9  "<"  Exp10 ;
-EGt.      Exp9   ::= Exp9  ">"  Exp10 ;
-ELtEq.    Exp9   ::= Exp9  "<=" Exp10 ;
-EGtEq.    Exp9   ::= Exp9  ">=" Exp10 ;
-EEq.      Exp8   ::= Exp8  "==" Exp9 ;
-ENEq.     Exp8   ::= Exp8  "!=" Exp9 ;
-EAnd.     Exp4   ::= Exp4  "&&" Exp5 ;
-EOr.      Exp3   ::= Exp3  "||" Exp4 ;
-EAss.     Exp2   ::= Exp3 "=" Exp2 ;
-ETernary. Exp2   ::= Exp2 "?" Exp2 ":" Exp2 ; -- ternary operator added for med.cc
-EThrow.   Exp1   ::= "throw" Id "(" Exp ")" ; -- throw exception for grade.cc
+ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;--higher priority
+EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
+EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
+EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
 
-internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ;
 
-coercions Exp 16 ; -- change coercions to 16 for ELit.
+EshiftL.    Exp10 ::= Exp10 "<<" Exp11;  --added for hello.cc
+EshiftR.    Exp10 ::= Exp10 ">>" Exp11;    --added for hello.cc
+--Exp 10 was not in use,
+
+
+ELt.     Exp9   ::= Exp9  "<"  Exp10 ;
+EGt.     Exp9   ::= Exp9  ">"  Exp10 ;--relational
+ELtEq.   Exp9   ::= Exp9  "<=" Exp10 ;
+EGtEq.   Exp9   ::= Exp9  ">=" Exp10 ;
+
+EEq.     Exp8   ::= Exp8  "==" Exp9 ;--bool
+ENEq.    Exp8   ::= Exp8  "!=" Exp9 ;
+EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
+EOr.     Exp3   ::= Exp3  "||" Exp4 ;--lower priority
+EAss.    Exp2   ::= Exp3 "=" Exp2 ;
+
+internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ; --only place a col used to show
+
+coercions Exp 15 ;
 
 separator Exp "," ;
 
-TypeQConst. Type ::= QConst ; -- a type for qualified constants
-TypePreModify. Type ::= PreModifier Type ; -- a new type with a modifier to another type
-TypePostModifiy. Type ::= Type PostModifier ; -- "
+rules Type   ::= "bool" | "int" | "double" | "void" | QId; -- got rid of string rule and added QId for greet.cc
+--needed to add QId so as to be able to recognize std::string as a type name.
 
-rules Type   ::= "bool" | "int" | "double" | "void" ;
-
-rules PreModifier ::= "const" ; -- adding new rules pre-modifying types
-rules PostModifier ::= "&" | "*"; -- adding new rules for post-modifying types
 
 token Id (letter (letter | digit | '_')*) ;
 
-separator nonempty Id "," ;  --all nonempty separators added with different types that it separates
+separator nonempty Id "," ;
 
 comment "#" ;
 comment "//" ;
