@@ -1,6 +1,7 @@
 PDefs.   Program ::= [Def] ; 
 
 DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
+DFunDecl.    Def    ::= Type Id "(" [Arg] ")" ";" ;--added for grammar
 
 DUsing.     Def     ::= "using" QConst ";"; --added using to keywords from identifiers or statements for grade.cc
 DTypedef.   Def     ::= "typedef" Type Id ";"; --added for grade 
@@ -11,8 +12,8 @@ DTypedef.   Def     ::= "typedef" Type Id ";"; --added for grade
 terminator Def "" ; 
 
 
-
 ADecl.   Arg    ::= Type Id ;
+ADeclNoId.   Arg    ::= Type ;--added for grammar
 
 separator Arg "," ;
 SDef.   Stm ::= Def;--added for grade
@@ -53,6 +54,9 @@ EPDecr.  Exp14  ::= Exp15 "--" ;
 
 EIncr.   Exp13  ::= "++" Exp14 ; --pre inc
 EDecr.   Exp13  ::= "--" Exp14 ;
+ENot.   Exp13  ::= "!" Exp14 ;--added for grammar
+ENeg.   Exp13  ::= "-" Exp14 ;--^^
+EDref.   Exp13  ::= "*" Exp14 ;--^^
 
 ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;--higher priority
 EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
@@ -89,7 +93,8 @@ separator Exp "," ;
 QConstName. QConst ::= Name ; -- consists of a name
 QConstList. QConst ::= QConst "::" Name ; -- names can be joined to form list
 NameId.     Name   ::= Id ; -- names can be an id
-NameTempId. Name   ::= Id "<" Type ">" ; -- names can be an id with template type
+NameTempId. Name   ::= Id "<" [Type] ">" ; -- names can be an id with template type
+                                           --added [] to Type for grammar
 
 separator nonempty Type ","; -- add a separator so that template args can be listed (certain data types have two args like maps. or some can take a sorting function, etc...)
 
