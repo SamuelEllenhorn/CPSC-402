@@ -15,7 +15,7 @@ terminator Def "" ;
 ADecl.   Arg    ::= Type Id ;
 
 separator Arg "," ;
-
+SDef.   Stm ::= Def;--added for grade
 SExp.        Stm ::= Exp ";" ;
 SDecls.      Stm ::= Type [Id] ";" ;
 SInit.       Stm ::= Type Id "=" Exp ";" ;
@@ -24,7 +24,7 @@ SReturnVoid. Stm ::= "return" ";" ;
 SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
 SBlock.      Stm ::= "{" [Stm] "}" ;
 SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
-
+SIf.         Stm ::= "if" "(" Exp ")" Stm ; --added for grade if statement with no else
 terminator Stm "" ;-- end of statement can be empty
 
 
@@ -44,6 +44,7 @@ EId.     Exp15  ::= QConst; --changed from Id to QConst for Hello
  
 
 EApp.    Exp15  ::= QConst "(" [Exp] ")" ; --^^
+EApp.    Exp15  ::= QConst "[" [Exp] "]" ; --added for grade homework[mid]
 
 
 EDot.   Exp14  ::= Exp15 "." Exp14 ;  --added for grade
@@ -55,6 +56,7 @@ EDecr.   Exp13  ::= "--" Exp14 ;
 
 ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;--higher priority
 EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
+EMod.    Exp12  ::= Exp12 "%"  Exp13 ;--added mod for grade
 EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
 EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
 
@@ -71,6 +73,7 @@ EGtEq.   Exp9   ::= Exp9  ">=" Exp10 ;
 
 EEq.     Exp8   ::= Exp8  "==" Exp9 ;--bool
 ENEq.    Exp8   ::= Exp8  "!=" Exp9 ;
+ETri.    Exp5   ::= Exp6 "?" Exp5 ":" Exp5 ;--added for grade   
 EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
 EOr.     Exp3   ::= Exp3  "||" Exp4 ;--lower priority
 EAss.    Exp2   ::= Exp3 "=" Exp2 ;
@@ -86,7 +89,7 @@ separator Exp "," ;
 QConstName. QConst ::= Name ; -- consists of a name
 QConstList. QConst ::= QConst "::" Name ; -- names can be joined to form list
 NameId.     Name   ::= Id ; -- names can be an id
-NameTempId. Name   ::= Id "<" [Type] ">" ; -- names can be an id with template type
+NameTempId. Name   ::= Id "<" Type ">" ; -- names can be an id with template type
 
 separator nonempty Type ","; -- add a separator so that template args can be listed (certain data types have two args like maps. or some can take a sorting function, etc...)
 
