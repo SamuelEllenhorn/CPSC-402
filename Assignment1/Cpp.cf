@@ -2,7 +2,15 @@ PDefs.   Program ::= [Def] ;
 
 DFun.    Def    ::= Type Id "(" [Arg] ")" "{" [Stm] "}" ;
 
+DUsing.     Def     ::= "using" QConst ";"; --added using to keywords from identifiers or statements for grade.cc
+DTypedef.   Def     ::= "typedef" Type Id ";"; --added for grade 
+--DTypedef. Def ::= "typedef" Type TypedefName ";" ;
+--DTypedefName. TypedefName ::= Id ;
+
+
 terminator Def "" ; 
+
+
 
 ADecl.   Arg    ::= Type Id ;
 
@@ -19,20 +27,26 @@ SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
 
 terminator Stm "" ;-- end of statement can be empty
 
-QIdColId.    QId ::= QId "::" Id; --added for hello only time it can show is when there is a qualified ID
-QIdId.  QId ::= Id; --QId can either be an Id or a QId followed by a :: and an Id
+
+--deleted 25+25 for grade
+
+ELString. Exp16 ::= Exp16 String; --added for grade.cc: A string can be a string followed by another string
+EBString. Exp16 ::= String; --Bare string added for grade.cc
 
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
 EInt.    Exp15  ::= Integer ;
 EDouble. Exp15  ::= Double ;
-EString. Exp15  ::= String ;
-EId.     Exp15  ::= QId; --changed from Id to QId for Hello
+EString. Exp15  ::= Exp16 ; -- changed from String to Exp16
+
+EId.     Exp15  ::= QConst; --changed from Id to QConst for Hello
                                  
  
 
-EApp.    Exp15  ::= QId "(" [Exp] ")" ; --^^
+EApp.    Exp15  ::= QConst "(" [Exp] ")" ; --^^
 
+
+EDot.   Exp14  ::= Exp15 "." Exp14 ;  --added for grade
 EPIncr.  Exp14  ::= Exp15 "++" ; --post inc
 EPDecr.  Exp14  ::= Exp15 "--" ;
 
@@ -66,9 +80,32 @@ internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ; --only place a col used to sho
 coercions Exp 15 ;
 
 separator Exp "," ;
+-------------------added for grade------------
+--vector<double> homework; //this is a templated type
 
-rules Type   ::= "bool" | "int" | "double" | "void" | QId; -- got rid of string rule and added QId for greet.cc
---needed to add QId so as to be able to recognize std::string as a type name.
+QConstName. QConst ::= Name ; -- consists of a name
+QConstList. QConst ::= QConst "::" Name ; -- names can be joined to form list
+NameId.     Name   ::= Id ; -- names can be an id
+NameTempId. Name   ::= Id "<" [Type] ">" ; -- names can be an id with template type
+
+separator nonempty Type ","; -- add a separator so that template args can be listed (certain data types have two args like maps. or some can take a sorting function, etc...)
+
+------------------end of grade---------------------------------------
+
+
+
+
+-------changed/added for grade-----------------
+TypeQConst. Type ::= QConst ; -- a type for qualified constants
+TypePreModify. Type ::= PreModifier Type ; -- a new type with a modifier to another type
+TypePostModifiy. Type ::= Type PostModifier ; -- add to modify types post
+--TypeTypdef. Type ::= TypedefName ; -- add typedefs to types
+
+rules Type   ::= "bool" | "int" | "double" | "void" | "char"; -- add char here
+
+rules PreModifier ::= "const" ; -- adding new rules pre-modifying types
+rules PostModifier ::= "&" | "*"; -- adding new rules for post-modifying types
+---------------------------------------------------
 
 
 token Id (letter (letter | digit | '_')*) ;
