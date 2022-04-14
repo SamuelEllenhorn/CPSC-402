@@ -26,14 +26,20 @@ SWhile.      Stm ::= "while" "(" Exp ")" Stm ;
 SBlock.      Stm ::= "{" [Stm] "}" ;
 SIfElse.     Stm ::= "if" "(" Exp ")" Stm "else" Stm ;
 SIf.         Stm ::= "if" "(" Exp ")" Stm ; --added for grade if statement with no else
+SThrow.      Stm ::= "throw" Id "(" Exp ")" ";" ;  --added for gram
+SFor.        Stm ::= "for" "("  Exp  ";" Exp ";" Exp ")" Stm;  --added for grammar
+SForDecl.    Stm ::= "for" "("  Type Id "=" Exp ";" Exp ";" Exp ")" Stm; --added for grammar
+SEmpty.      Stm ::= ";";
 terminator Stm "" ;-- end of statement can be empty
 
 
 --deleted 25+25 for grade
 
+
+
 ELString. Exp16 ::= Exp16 String; --added for grade.cc: A string can be a string followed by another string
 EBString. Exp16 ::= String; --Bare string added for grade.cc
-
+EBChar. Exp15 ::= Character;--added for grammar
 ETrue.   Exp15  ::= "true" ;
 EFalse.  Exp15  ::= "false" ;
 EInt.    Exp15  ::= Integer ;
@@ -49,6 +55,7 @@ EApp.    Exp15  ::= QConst "[" [Exp] "]" ; --added for grade homework[mid]
 
 
 EDot.   Exp14  ::= Exp15 "." Exp14 ;  --added for grade
+EPointerProj. Exp14 ::= Exp15 "->" Exp14 ; --added for gram
 EPIncr.  Exp14  ::= Exp15 "++" ; --post inc
 EPDecr.  Exp14  ::= Exp15 "--" ;
 
@@ -61,7 +68,7 @@ EDref.   Exp13  ::= "*" Exp14 ;--^^
 ETimes.  Exp12  ::= Exp12 "*"  Exp13 ;--higher priority
 EDiv.    Exp12  ::= Exp12 "/"  Exp13 ;
 EMod.    Exp12  ::= Exp12 "%"  Exp13 ;--added mod for grade
-EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;
+EPlus.   Exp11  ::= Exp11 "+"  Exp12 ;--note on addition: because exp11 < exp12 parenthesis go on the exp11 terms
 EMinus.  Exp11  ::= Exp11 "-"  Exp12 ;
 
 
@@ -81,6 +88,7 @@ ETri.    Exp5   ::= Exp6 "?" Exp5 ":" Exp5 ;--added for grade
 EAnd.    Exp4   ::= Exp4  "&&" Exp5 ;
 EOr.     Exp3   ::= Exp3  "||" Exp4 ;--lower priority
 EAss.    Exp2   ::= Exp3 "=" Exp2 ;
+
 
 internal ETyped. Exp15 ::= "(" Exp ":" Type ")" ; --only place a col used to show
 
@@ -115,7 +123,7 @@ rules PreModifier ::= "const" ; -- adding new rules pre-modifying types
 rules PostModifier ::= "&" | "*"; -- adding new rules for post-modifying types
 ---------------------------------------------------
 
-
+token Character '\'' ( '\\' char | char ) '\'';--added for grammar token called charector stars with a single quote followed by any char and ends with a single quote(+ : atleast one charector)
 token Id (letter (letter | digit | '_')*) ;
 
 separator nonempty Id "," ;
