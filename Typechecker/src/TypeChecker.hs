@@ -51,10 +51,10 @@ insertFun (sig,ctxt) i t = do
 
 
 lookupVar :: Id -> Env -> Err Type
-lookupVar i (_,[]) = fail $ "TYPE ERROR\n\n" ++ printTree i ++ " was not declared."
-lookupVar i (sig,c:ctxt) = case M.lookup i c of
-    (Just f) -> return f
-    Nothing -> lookupVar i (sig,ctxt)
+lookupVar i (_,[]) = fail $ "TYPE ERROR\n\n" ++ printTree i ++ " was not declared." -- if you cant find the var in the env
+lookupVar i (sig,c:ctxt) = case M.lookup i c of --look if i is in the env
+    (Just f) -> return f   --returns a type and a val
+    Nothing -> lookupVar i (sig,ctxt)  
 
 
 insertVar :: Env -> Id -> Type -> Err Env
@@ -119,29 +119,55 @@ In env' <- checkStm env stm ty we have
     env': the updated environment (stm may be variable declaration)
           or an error message (if stm is not valid)
 -}
-checkStm :: Env -> Stm -> Type -> Err Env 
+
+checkStm :: Env -> Stm -> Type -> Err Env
+ 
 checkStm env (SExp e) ty = do
     inferTypeExp env e
     return env
-checkStm env (SDecls ty' ids) ty =
+checkStm env (SDecls ty' ids) ty =   
     foldM (\e i -> insertVar e i ty') env ids
 checkStm env (SReturn e) ty = do
     checkExp env e ty
     return env
 
- checkStm env (SInit ty' i e) ty = do
-     env' <- insertVar env i ty'
-     ty1 <- inferTypeExp env' e
-     if ty1 == ty then
-         return env'
-    else
-        fail $ typeMismatchError e ty ty1
-    -- similar to SDecls, but not need for foldM
 
--- checkStm env SReturnVoid Type_void =
+--int x = x + 1
+
+--return false
+checkStm env (SInit ty' i e) ty = do  --sInit Type Id Exp ty' is the pre int check e has ty'
+    checkExp env e ty'
+    insertVar env i ty'  --insertVar :: Env -> Id -> Type -> Err Env 
+    
+             --if e2 and ty dont match 
+   -- return Type_bool
+    
+   -- checkExp env e ty'
+   -- unless (ty==ty') $
+       -- fail $ "types"
+    --insertVar env i ty'
+    
+    --result <- tryJust () $  --try thus if it works do the enxt step, otherwise error out
+    --case result of 
+        --Left what -> fail "types not compatable'"
+        --Right val -> insertVar env i ty'                                  
+    --case inferTypeExp env e of   
+      -- similar to SDecls, but not need for foldM
+
+-- get the type of e
+--if type of e matches ty'
+--insertvar env i ty'
+--otherwise signal error    
+    --checkExp ty' e ty           
+    --return Type_bool
+     
+
+checkStm env SReturnVoid Type_void = do
+    return env
 -- the next case is only executed in case ty is not Type_void
--- checkStm env SReturnVoid ty = do
+checkStm env SReturnVoid ty = do
     -- return a typeMismatchError
+    fail $ typeMismatchError SReturnVoid Type_void ty  --typeMismatchError e t1 t2 returns a string 
 
 -- checkStm env (SWhile e stm) ty = do
     -- use newBlock
@@ -152,10 +178,15 @@ checkStm env (SReturn e) ty = do
 
 -- checkStm env (SIfElse e stm1 stm2) ty = do
     -- use newBlock in both branches
+    --check type of is a bool
+    --if (e == Type_bool)then stm2s
+        --recursivly check stm1 
 
 {-   
 Once you have all cases you can delete the next line which is only needed to catch all cases that are not yet implemented.
 -}
+
+
 checkStm _ s _ = fail $ "Missing case in checkStm encountered:\n" ++ printTree s
 
 
@@ -167,47 +198,148 @@ In ty <- inferTypExp env e we have
         or an error message (if we cannot assign a type to e)
 -}
 inferTypeExp :: Env -> Exp -> Err Type
-inferTypeExp env (EInt _) = return Type_int
--- inferTypeExp env (EDouble _) = 
--- inferTypeExp env (EString _) = 
-inferTypeExp env (EId i) = do
-    ty <- lookupVar i env
-    return ty
-    -- use lookupVar 
--- inferTypeExp env (EApp i exps) = do
-    -- use lookupFun
-    -- use forM_ to iterate checkExp over exps
--- inferTypeExp env (EPIncr e) = 
-    -- use inferTypeOverloadedExp 
--- inferTypeExp env (EPDecr e) = 
--- inferTypeExp env (EIncr e) = 
--- inferTypeExp env (EDecr e) = 
--- inferTypeExp env (ETimes e1 e2) = 
--- inferTypeExp env (EDiv e1 e2) = 
- inferTypeExp env (EPlus e1 e2) = do
-    t1 <- inferTypeExp env e1
-    t2 <- inferTypeExp env e2
-    if t1 == Type_int && t1 == Type_int then
-        return Type_int
+inferTypeExp env (EInt _) = return Type_int--Are these correct?
+inferTypeExp env (EDouble _) = return Type_double
+inferTypeExp env (EString _) = return Type_string--Are these Correct?
+inferTypeExp env (EId i) = lookupVar i env       --we want
+inferTypeExp env (EPIncr e) = do 
+    ty <- inferTypeExp env e
+    if (ty == Type_int) -- checkExp env Type_int ty
+        then
+        return ty --return type of ty
     else
-        fail $ typeMismatchError (EPlus e1 e2) Type_int Type_int
--- inferTypeExp env (EMinus e1 e2) = 
--- inferTypeExp env (ELt e1 e2) = do
--- inferTypeExp env (EGt e1 e2) = 
--- inferTypeExp env (ELtEq e1 e2) = 
--- inferTypeExp env (EGtEq e1 e2) = 
--- inferTypeExp env (EEq e1 e2) = do
--- inferTypeExp env (ENEq e1 e2) = 
--- inferTypeExp env (EAnd e1 e2) = do
--- inferTypeExp env (EOr e1 e2) = 
+        fail $"error on EPIncr, types dont match"
+           --return the inferedtype of lookup  -- lookupVar:   Id -> Env -> Err Type returns a type and exp
+    
+--EPIncr Exp -- postincrement--EPDecr Exp
+
+
+
+    
+--inferTypeExp env (EApp i exps) = do 
+ --  forM_ exps (lookupFun env i)      --lookupFun :: Env -> Id -> Err FunctionType
+     --SInit return env                
+    -- use forM_ to iterate checkExp over exps
+
+-- inferTypeExp env (EPIncr e) = 
+    
+    
+-- use inferTypeOverloadedExp 
+inferTypeExp env (EPDecr e) =  do
+    ty <- inferTypeExp env e
+    if (ty == Type_int) -- checkExp env Type_int ty
+        then
+        return ty --return type of ty
+    else
+        fail $"error on EPDecr, types dont match"
+
+
+    --Env -> Exp -> Err Type
+    --check exp: checkExp :: Env -> Exp -> Type -> Err ()
+--inferTypeExp env (EIncr e) =  
+    --set something to e ++
+   -- checkExp e inferTypeExp env e 
+
+ --pre  working here
+    
+
+
+
+
+-- inferTypeExp env (EDecr e) =
+inferTypeExp env (ETimes e1 e2) = do
+    --only works with int or double
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    -- check if one is in or double
+    if (Type_double == ty || Type_int == ty)
+        then
+        return ty --return type of ty
+    else
+        fail $"error on multiplication, types dont match"
+-- inferTypeExp env (EDiv e1 e2) = 
+inferTypeExp env (EPlus e1 e2) = do
+    --only works with int or double
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    -- check if one is in or double
+    if (Type_double == ty || Type_int == ty || Type_string == ty)
+        then
+        return ty --return type of ty
+    else
+        fail $"error on addition, types dont match"
+
+
+-- inferTypeExp env (EMinus e1 e2) =
+
+    --Q1 
+inferTypeExp env (ELt e1 e2) = do 
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+    ---type mismatch error returns a string and takes in e, t1, and t2, turns them into strings concatonates them  
+    ---should i create a diffrent function which takes in a lisrt of 
+    --if tel = number_types && te2 number_types then
+      --  Type_bool
+    --else 
+      --  fail $ typeMismatchError
+    --where
+      --  te1 = inferTypeExp e1
+  --      te2 = inferTypeExp e2
+inferTypeExp env (EGt e1 e2) = do
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+inferTypeExp env (ELtEq e1 e2) = do
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+inferTypeExp env (EGtEq e1 e2) = do
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+
+inferTypeExp env (EEq e1 e2) = do
+     
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+
+inferTypeExp env (ENEq e1 e2) = do
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+inferTypeExp env (EAnd e1 e2) = do
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+inferTypeExp env (EOr e1 e2) = do --edited
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    return Type_bool
+    --checkStm inferTypeExp e1 inferTypeExp e2
 
 inferTypeExp env (EAss e1 e2) = do
     ty <- inferTypeExp env e1
-    checkExp env e2 ty
+    checkExp env e2 ty          --if e2 and ty dont match 
     return ty
 inferTypeExp env (ETyped e ty) = do
     checkExp env e ty
     return ty
+
+inferTypeExp env (EFunc id arg) =  do
+    fty <- lookupFun env id
+    aty <- inferTypeExp env arg
+    if (aty == Type_int)
+        then
+        
+        return fty --return type of ty
+    else
+        fail $"error on addition, types dont match" 
+         
+
+
+--lookupFun :: Env -> Id -> Err FunctionType
 
 
     
@@ -226,7 +358,7 @@ inferTypeOverloadedExp env (Alternative ts) e es = do
     return ty
 
 
-checkExp :: Env -> Exp -> Type -> Err ()
+checkExp :: Env -> Exp -> Type -> Err ()  --checks through env to obtain exp decideds if theres a type mismatch
 checkExp env e ty = do
     ty' <- inferTypeExp env e
     unless (ty == ty') $ 
