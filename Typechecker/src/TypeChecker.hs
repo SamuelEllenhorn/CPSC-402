@@ -169,17 +169,47 @@ checkStm env SReturnVoid ty = do
     -- return a typeMismatchError
     fail $ typeMismatchError SReturnVoid Type_void ty  --typeMismatchError e t1 t2 returns a string 
 
--- checkStm env (SWhile e stm) ty = do
+checkStm env (SWhile e stm) ty = do
+    ty <- inferTypeExp env e
+    --env1 <- newBlock env
+    --env2 <- newBlock env
+    if (ty == Type_bool) 
+        then do
+            let env1 = newBlock env
+            checkStm env1 stm ty
+            return env
+        else
+            fail $ "you failed"
     -- use newBlock
 
--- checkStm env (SBlock stms) ty = do
+checkStm env (SBlock stms) ty = do
+    let env1 = newBlock env
+    foldM_ checkStm env1 stms ty --[fold] function 
     -- use newBlock
     -- use foldM_ to fold checkStm over all stms
 
--- checkStm env (SIfElse e stm1 stm2) ty = do
+checkStm env (SIfElse e stm1 stm2) ty = do
     -- use newBlock in both branches
     --check type of is a bool
-    --if (e == Type_bool)then stm2s
+    ty <- inferTypeExp env e
+    --env1 <- newBlock env
+    --env2 <- newBlock env
+    if (ty == Type_bool) 
+        then do
+          --  checkStm env stm1 
+            --checkStm env stm2
+            --return env 
+            let env1 = newBlock env
+            let env2 = newBlock env
+            checkStm env1 stm1 ty
+            checkStm env2 stm2 ty
+            return env
+             
+--checkStm :: Env -> Stm -> Type -> Err Env
+            
+    else
+        fail $ "expression in if statement is not of type bool"
+        
         --recursivly check stm1 
 
 {-   
@@ -216,7 +246,17 @@ inferTypeExp env (EPIncr e) = do
 
 
     
---inferTypeExp env (EApp i exps) = do 
+inferTypeExp env (EApp i exps) = do 
+   -- lookupFun :: Env -> Id -> Err FunctionType
+   (args, result) <- lookupFun env i
+--exps checkExp env ty1
+   let f x = checkExp env (fst x) (snd x)
+   forM_ (zip exps args) f
+   return result
+ 
+   --call checkExp
+
+
  --  forM_ exps (lookupFun env i)      --lookupFun :: Env -> Id -> Err FunctionType
      --SInit return env                
     -- use forM_ to iterate checkExp over exps
@@ -234,6 +274,11 @@ inferTypeExp env (EPDecr e) =  do
         fail $"error on EPDecr, types dont match"
 
 
+--inferTypeExp env (ECall id [arg]) = do 
+ --    fty <- lookupFun env id
+  --   return Type_void
+    --aty <- inferTypeExp env arg
+    --if (aty == Type_int) 
     --Env -> Exp -> Err Type
     --check exp: checkExp :: Env -> Exp -> Type -> Err ()
 --inferTypeExp env (EIncr e) =  
@@ -327,15 +372,15 @@ inferTypeExp env (ETyped e ty) = do
     checkExp env e ty
     return ty
 
-inferTypeExp env (EFunc id arg) =  do
-    fty <- lookupFun env id
-    aty <- inferTypeExp env arg
-    if (aty == Type_int)
-        then
+--inferTypeExp env (EFunc id arg) =  do
+  --  fty <- lookupFun env id
+    --aty <- inferTypeExp env arg
+    --if (aty == Type_int)
+      --  then
         
-        return fty --return type of ty
-    else
-        fail $"error on addition, types dont match" 
+        --return fty --return type of ty
+    --else
+        --fail $"error on addition, types dont match" 
          
 
 
