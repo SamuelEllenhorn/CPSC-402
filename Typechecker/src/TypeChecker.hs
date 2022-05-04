@@ -3,7 +3,7 @@ module TypeChecker ( typecheck ) where
 import AbsCPP
 import ErrM
 import PrintCPP
-
+import Debug.Trace
 import Data.Map ( Map )
 import qualified Data.Map as M
 import Data.Set ( Set )
@@ -121,7 +121,7 @@ In env' <- checkStm env stm ty we have
 -}
 
 checkStm :: Env -> Stm -> Type -> Err Env
- 
+
 checkStm env (SExp e) ty = do
     inferTypeExp env e
     return env
@@ -139,7 +139,7 @@ checkStm env (SInit ty' i e) ty = do  --sInit Type Id Exp ty' is the pre int che
     checkExp env e ty'
     insertVar env i ty'  --insertVar :: Env -> Id -> Type -> Err Env 
     
-             --if e2 and ty dont match 
+   --if e2 and ty dont match 
    -- return Type_bool
     
    -- checkExp env e ty'
@@ -182,9 +182,18 @@ checkStm env (SWhile e stm) ty = do
             fail $ "you failed"
     -- use newBlock
 
-checkStm env (SBlock stms) ty = do
+checkStm env (SBlock stms) ty = do -- {statement, statment, st}
     let env1 = newBlock env
-    foldM_ checkStm env1 stms ty --[fold] function 
+    --checkStm env1 stms ty --[fold] function
+    checker env1 stms
+    where
+        checker env [] = 
+            return env
+        checker env (a:as) = do
+            newEnv <- checkStm env a ty
+            checker newEnv as
+
+
     -- use newBlock
     -- use foldM_ to fold checkStm over all stms
 
@@ -231,6 +240,19 @@ inferTypeExp :: Env -> Exp -> Err Type
 inferTypeExp env (EInt _) = return Type_int--Are these correct?
 inferTypeExp env (EDouble _) = return Type_double
 inferTypeExp env (EString _) = return Type_string--Are these Correct?
+
+
+inferTypeExp env ETrue = return Type_bool
+
+inferTypeExp env EFalse = return Type_bool
+
+
+
+
+
+
+
+
 inferTypeExp env (EId i) = lookupVar i env       --we want
 inferTypeExp env (EPIncr e) = do 
     ty <- inferTypeExp env e
@@ -261,7 +283,7 @@ inferTypeExp env (EApp i exps) = do
      --SInit return env                
     -- use forM_ to iterate checkExp over exps
 
--- inferTypeExp env (EPIncr e) = 
+--inferTypeExp env (EPIncr e) = 
     
     
 -- use inferTypeOverloadedExp 
@@ -274,24 +296,29 @@ inferTypeExp env (EPDecr e) =  do
         fail $"error on EPDecr, types dont match"
 
 
---inferTypeExp env (ECall id [arg]) = do 
+
  --    fty <- lookupFun env id
   --   return Type_void
     --aty <- inferTypeExp env arg
     --if (aty == Type_int) 
     --Env -> Exp -> Err Type
     --check exp: checkExp :: Env -> Exp -> Type -> Err ()
---inferTypeExp env (EIncr e) =  
-    --set something to e ++
-   -- checkExp e inferTypeExp env e 
-
- --pre  working here
+inferTypeExp env (EIncr e) = do
+    ty <- inferTypeExp env e
+    if (ty == Type_int) -- checkExp env Type_int ty
+        then
+        return ty --return type of ty
+    else
+        fail $"error on EIncr, types dont match"
     
+inferTypeExp env (EDecr e) = do
+    ty <- inferTypeExp env e
+    if (ty == Type_int) -- checkExp env Type_int ty
+        then
+        return ty --return type of ty
+    else
+        fail $"error on EDecr, types dont match"
 
-
-
-
--- inferTypeExp env (EDecr e) =
 inferTypeExp env (ETimes e1 e2) = do
     --only works with int or double
     ty <- inferTypeExp env e1
@@ -302,7 +329,18 @@ inferTypeExp env (ETimes e1 e2) = do
         return ty --return type of ty
     else
         fail $"error on multiplication, types dont match"
--- inferTypeExp env (EDiv e1 e2) = 
+inferTypeExp env (EDiv e1 e2) = do --- check this one!!!!!!!!!!!!
+    --only works with int or double
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    -- check if one is in or double
+    if (Type_double == ty || Type_int == ty)
+        then
+        return ty --return type of ty
+    else
+        fail $"error on division, types dont match"
+
+
 inferTypeExp env (EPlus e1 e2) = do
     --only works with int or double
     ty <- inferTypeExp env e1
@@ -315,7 +353,16 @@ inferTypeExp env (EPlus e1 e2) = do
         fail $"error on addition, types dont match"
 
 
--- inferTypeExp env (EMinus e1 e2) =
+inferTypeExp env (EMinus e1 e2) = do
+    --only works with int or double
+    ty <- inferTypeExp env e1
+    checkExp env e2 ty          --if e2 and ty dont match 
+    -- check if one is in or double
+    if (Type_double == ty || Type_int == ty)
+        then
+        return ty --return type of ty
+    else
+        fail $"error on subtraction, types dont match"
 
     --Q1 
 inferTypeExp env (ELt e1 e2) = do 
@@ -391,7 +438,7 @@ inferTypeExp env (ETyped e ty) = do
 {-
 Once you have all cases you can delete the next line which is only needed to catch all cases that are not yet implemented.
 -}
-inferTypeExp _ e = fail $ "Missing case in inferTypeExp encountered:\n" ++ printTree e
+inferTypeExp _ e = fail $ "Missing case in inferTypeExp encountered:\n" ++ show e
 
 
 inferTypeOverloadedExp :: Env -> Alternative Type -> Exp -> [Exp] -> Err Type
