@@ -15,6 +15,8 @@ data Value = VInt Integer
            | VDouble Double
            | VVoid
            | VUndefined deriving Eq
+           
+
 
 pattern VTrue = VInt 1
 pattern VFalse = VInt 0
@@ -160,7 +162,11 @@ evalStm (SInit _ i e) = do
     extendContext i v
     return Nothing
     
---evalStm SReturnVoid = Just VVoid --VVoid Type_void
+evalStm SReturnVoid = do
+    return $ Just VVoid
+    
+    
+    --Just VVoid --VVoid Type_void
 
 evalStm (SReturn e) = do
     v <- evalExp e
@@ -168,15 +174,37 @@ evalStm (SReturn e) = do
 
 evalStm (SBlock stms) = pushPop $ evalStms stms  
 
---evalStm (SWhile e stm) = do
-   -- if v <- evalStm
-   --     if v == VTrue then pushPop (evalStm stm) >>= \v' -> case v' of
-   --         Nothing -> evalStm (SWhile e stm)
-   --         Just_ -> return v'
-   --     else return Nothing
-            {-
-evalStm (SIfElse e stm1 stm2) = 
--}
+evalStm (SWhile e stm) = do --use push or push pop to create a new context
+    v <- evalExp e
+    if v == VTrue then do 
+        v <- evalStm stm
+        case (v) of
+            (Just stm) -> return v 
+            (Nothing) -> evalStm (SWhile e stm)
+    else return Nothing
+
+        --Return Nothing
+    --else return VVoid
+    --SWhile e stm
+    --v <- evalExp e
+    --check if v is true
+
+
+--goal evaluate e, if it returns true, eval stm
+
+    --check if e is a bool
+        --
+    --v <- evalStm e
+       -- if v == VTrue then pushPop (evalStm stm) >>= \v' -> case v' of
+         --   Nothing -> evalStm (SWhile e stm)
+           -- Just_ -> return v'
+        --else return Nothing
+            {--}
+evalStm (SIfElse e stm1 stm2) = do
+    v <- evalExp e
+    if v == VTrue then evalStm stm1
+    else evalStm stm2
+
 evalStm stm = 
     fail $ "Missing case in evalStm " ++ printTree stm ++ "\n"
 
@@ -189,7 +217,7 @@ evalExp (EInt i) = return $ VInt i
 
 evalExp (EDouble d) = return $ VDouble d
     
---evalExp (EString _) = return Just VString
+--evalExp (EString _) = return $ VString
 evalExp (EId i) = lookupContext i
     
 
@@ -228,29 +256,46 @@ evalExp (EPIncr e@(EId i)) = do
     val <- evalExp (EId i)
     val' <- addValue val (VInt 1)
     updateContext i val'
-    return val'
+    return val
 evalExp (EPIncr e) = fail $ "Expected " ++ printTree e ++ " to be an id."
 
 evalExp (EPDecr e@(EId i)) = do
     val <- evalExp (EId i)
     val' <- subValue val (VInt 1)
     updateContext i val'
-    return val'
+    return val
     
 evalExp (EPDecr e) = fail $ "Expected " ++ printTree e ++ " to be an id."
     
+--post inc explained
+--a=0
+--b=a++
+--b gets a which is still 0, and then a is incremented
+evalExp (EIncr e@(EId i)) =  do
+    val <- evalExp (EId i)
+    val' <- addValue val (VInt 1) 
+    updateContext i val'
+    return val'
+evalExp (EIncr e) = fail $ "Expected " ++ printTree e ++ " to be an id."
+
+evalExp (EDecr e@(EId i)) =  do
+    val <- evalExp (EId i)
+    val' <- subValue val (VInt 1)
+    updateContext i val'
+    return val'
+evalExp (EDecr e) = fail $ "Expected " ++ printTree e ++ " to be an id."
+--evalExp (EDecr e) = do
+
+
+
     --evalExp EPDecr e --posdecrement  e--
 
     {-
 
     --Ask about the diffrence between pre and post inc, can the same code be used.
     -- How can that code be addapted.
-    
-evalExp (EIncr e@(EId i)) = 
-evalExp (EIncr e) = 
-evalExp (EDecr e@(EId i)) = -}
---evalExp (EDecr e) = do
-    --v1 <- evalExp e
+
+-}
 
 
 --
@@ -296,20 +341,34 @@ evalExp (ENEq e1 e2) = do
     neqValue v1 v2
 
     
+    --check here
+evalExp (EAnd e1 e2) = do
+    v <- evalExp e1
+    if v == VTrue then evalExp e2
+    else return VFalse
     
---evalExp (EAnd e1 e2) =
-
-    {- 
-evalExp (EOr e1 e2) = 
-
-evalExp (EAss _ _) = 
-evalExp (ETyped e _) = 
+     
+evalExp (EOr e1 e2) = do -- is this the correct method or should I write functions(check bottom)
+    v <- evalExp e1
+    if v == VFalse then evalExp e2
+    else return VTrue
+{-
+evalExp (EAss _ _) = do
+    --v <- evalExp (EId i)
+    val <- evalExp e2
+    updateContext i val
+    return val
 -}
+
+--evalExp (ETyped _ _) = --what is this for?
+
 evalExp (EAss (EId i) e) = do
     v <- evalExp e
     updateContext i v
     return v
-    
+
+evalExp (EAss _ _) = fail $ "Not given one arg" 
+
 evalExp e = fail $ "Missing case in evalExp." ++ printTree e ++ "\n"
 
 
@@ -393,6 +452,14 @@ gteqValue (VDouble u) (VInt    v) = gteqValue (VDouble u) (VDouble $ fromInteger
 gteqValue (VInt    u) (VDouble v) = gteqValue (VDouble $ fromInteger u) (VDouble v)
 gteqValue _ _ = fail $ "Internal error, trying to apply gtValue to incompatible types."
 
+-----------------------------booland----------------------------------
+
+boolAnd :: Interpreter i => Value -> Value -> i Value
+boolAnd VFalse _ = return $ VFalse
+boolAnd VTrue VTrue = return $ VTrue
+boolAnd _ _ = fail $ "Internal error, trying to apply negValue to incompatible types."
+
+----------------------------------------------------------------------
 
 negValue :: Interpreter i => Value -> i Value
 negValue VFalse = return $ VTrue
