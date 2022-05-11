@@ -5,7 +5,6 @@ module Interpreter ( exec, Value(..), IIO(..), Interpreter(..), emptyEnv ) where
 import AbsCPP
 import ErrM
 import PrintCPP
-
 import Data.Map ( Map )
 import qualified Data.Map as M
 import Control.Monad.State ( MonadState, StateT, get, put, modify, foldM, liftIO, lift )
@@ -130,7 +129,7 @@ pushPop :: Interpreter i => i a -> i a-- the first i is
 pushPop f = do
     push
     v <- f
-    pop 
+    pop
     return v
 
 exec :: Interpreter i => Program -> i ()
@@ -177,33 +176,19 @@ evalStm (SBlock stms) = pushPop $ evalStms stms
 evalStm (SWhile e stm) = do --use push or push pop to create a new context
     v <- evalExp e
     if v == VTrue then do 
-        v <- evalStm stm
+        v <- pushPop (evalStm stm)
         case (v) of
             (Just stm) -> return v 
             (Nothing) -> evalStm (SWhile e stm)
     else return Nothing
 
-        --Return Nothing
-    --else return VVoid
-    --SWhile e stm
-    --v <- evalExp e
-    --check if v is true
+        
 
 
---goal evaluate e, if it returns true, eval stm
-
-    --check if e is a bool
-        --
-    --v <- evalStm e
-       -- if v == VTrue then pushPop (evalStm stm) >>= \v' -> case v' of
-         --   Nothing -> evalStm (SWhile e stm)
-           -- Just_ -> return v'
-        --else return Nothing
-            {--}
 evalStm (SIfElse e stm1 stm2) = do
     v <- evalExp e
-    if v == VTrue then evalStm stm1
-    else evalStm stm2
+    if v == VTrue then pushPop (evalStm stm1)
+    else pushPop (evalStm stm2)
 
 evalStm stm = 
     fail $ "Missing case in evalStm " ++ printTree stm ++ "\n"
