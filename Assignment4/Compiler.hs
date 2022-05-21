@@ -258,6 +258,7 @@ compileStm (SDecls ty ids) = do
     modify (\(m, c) -> (foldl (\m' i -> M.insert i (ty,c) m') m ids, c))
     return []
 {- 
+
 compileStm (SInit ty i e) = do
     -- insert variable into the environment:
     modify (\(m, c) -> (M.insert i (ty,c) m, c)) 
@@ -266,18 +267,26 @@ compileStm (SInit ty i e) = do
     -- return the code that evaluates the expression and
     -- assigns the value to the variable
 
-compileStm (SReturn e) = 
+-}
+compileStm (SReturn e) = do
+        s_e <- compileExp Nested e 
+        return $ 
+            s_e ++ 
+            [s_return]
     -- compile expression
     -- return the code that evaluates the expressions and 
     -- returns the value
--}
+
 
 compileStm SReturnVoid = return []
 
--- compileStm (SWhile cond s) = do
+compileStm (SWhile cond s) = do
+    s_cond <- compileExp Nested s_cond
+
     -- compile condition
-    -- use pushPop to compile statement
-    -- return `[ s_block [s_loop ...]]` 
+    -- use pushPop to compile statement pushPop :: MonadState Env m => m a -> m a
+    --pushPop s_cond
+    --return [ s_block [s_loop $printDouble (param f64) ]] 
     -- to fill in the ... proceed as in fibonacci.wat
 
 -- compileStm (SBlock stms) = do
@@ -353,19 +362,29 @@ compileExp :: MonadState Env m => Nesting -> Exp -> m [SExp]
 compileExp n ETrue = return $ if n == Nested then [s_i32_const 1] else []
 
 -- compileExp n EFalse = 
-
+compileExp n EFalse = return $ if n == Nested then [s_i32_const 0] else []
 -- compileExp n (EInt i) = 
+compileExp n (EInt i) = return $ if n == Nested then [s_i32_const i] else []
 
 -- compileExp n (EDouble i) = 
+compileExp n (EDouble i) = return $ if n == Nested then [s_f64_const i] else []
 
 -- compileExp n (EId i) = do
-    -- use `getVarName`
+    -- use `getVarName` 
+ --   return getVarName n i
 
 -- compileExp n x@(EApp (Id i) args) = do 
     -- use `mapM` to iterate `compileExp Nested` over `args`
     -- get the type of `EApp (Id i) args` 
     -- use `s_call`
     -- if n==TopLevel and the type is not void use `s_drop`
+compileExp n x@(EApp (Id i) args) = do 
+        s_args <- mapM (compileExp Nested) args
+        ty <- getType x
+        return $ 
+            concat s_args ++ 
+            [s_call i] ++
+            if n == TopLevel && ty /= Type_void then [s_drop] else []
 
 -- compileExp n (EIncr id@(EId i)) = do
     -- make a case distinction on whether the type of `EId i` is `Type_int` or `Type_double`
@@ -388,9 +407,30 @@ compileExp _ (EEq e1 e2)    =
 compileExp _ (ENEq e1 e2)   =  
 -}
 
+compileExp n (ETimes e1 e2) = compileArith e1 e2 s_i32_mul s_f64_mul
+compileExp n (EDiv e1 e2) = compileArith e1 e2 s_i32_div_s s_f64_div
+compileExp n (EPlus e1 e2) = compileArith e1 e2 s_i32_add s_f64_add
+compileExp n (EMinus e1 e2) = compileArith e1 e2 s_i32_sub s_f64_sub
+compileExp n (ELt e1 e2)    =  compileArith e1 e2 s_i32_lt_s s_f64_lt
+compileExp n (EGt e1 e2)    =  compileArith e1 e2 s_i32_gt_s s_f64_gt
+compileExp n (ELtEq e1 e2)  =  compileArith e1 e2 s_i32_le_s s_f64_le
+compileExp n (EGtEq e1 e2)  =  compileArith e1 e2 s_i32_ge_s s_f64_ge
+compileExp n (EEq e1 e2)    =  compileArith e1 e2 s_i32_eq s_f64_eq
+compileExp n (ENEq e1 e2)   =  compileArith e1 e2 s_i32_ne s_f64_ne
+
+
 -- for And and Or use if/then/else
--- compileExp _ (EAnd e1 e2) = do
--- compileExp _ (EOr e1 e2) = do
+
+
+compileExp _ (EAnd e1 e2) = do
+    compileExp_1 <- compileExp Nested e1
+    compileExp_2 <- compileExp Nested e2
+    return $ compileExp_1 ++ [s_i32_const 1] ++ [s_if_then_else s_i32 compileExp_2 [s_i32_const 0]]
+compileExp _ (EOr e1 e2) = do 
+    compileExp_1 <- compileExp Nested e1
+    compileExp_2 <- compileExp Nested e2
+    return $ compileExp_1 ++ [s_i32_eqz] ++ [s_if_then_else s_i32 compileExp_2 [s_i32_const 1]]
+
 
 -- compileExp n (EAss (EId i) e) = do
     -- use s_local_tee and s_local_set
