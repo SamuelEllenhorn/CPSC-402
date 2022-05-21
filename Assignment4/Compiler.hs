@@ -257,17 +257,22 @@ compileStm (SDecls ty ids) = do
     -- insert variables into the environment
     modify (\(m, c) -> (foldl (\m' i -> M.insert i (ty,c) m') m ids, c))
     return []
-{- 
+ 
 
 compileStm (SInit ty i e) = do
     -- insert variable into the environment:
     modify (\(m, c) -> (M.insert i (ty,c) m, c)) 
     -- getVarName
+    varName <- getVarName i
+    cmpiledExp <- compileExp Nested e
+    return $ 
+        cmpiledExp ++ [s_local_set varName]
+    
     -- compile expression using `compileExp Nested e`
     -- return the code that evaluates the expression and
     -- assigns the value to the variable
 
--}
+
 compileStm (SReturn e) = do
         s_e <- compileExp Nested e 
         return $ 
@@ -280,8 +285,8 @@ compileStm (SReturn e) = do
 
 compileStm SReturnVoid = return []
 
-compileStm (SWhile cond s) = do
-    s_cond <- compileExp Nested s_cond
+--compileStm (SWhile cond s) = do
+    --s_cond <- compileExp Nested s_cond
 
     -- compile condition
     -- use pushPop to compile statement pushPop :: MonadState Env m => m a -> m a
@@ -369,9 +374,12 @@ compileExp n (EInt i) = return $ if n == Nested then [s_i32_const i] else []
 -- compileExp n (EDouble i) = 
 compileExp n (EDouble i) = return $ if n == Nested then [s_f64_const i] else []
 
--- compileExp n (EId i) = do
+compileExp n (EId i) = do
     -- use `getVarName` 
- --   return getVarName n i
+    name <- getVarName i
+    return $ 
+        if n == Nested then [s_local_get name] else []
+        
 
 -- compileExp n x@(EApp (Id i) args) = do 
     -- use `mapM` to iterate `compileExp Nested` over `args`
@@ -388,25 +396,27 @@ compileExp n x@(EApp (Id i) args) = do
 
 -- compileExp n (EIncr id@(EId i)) = do
     -- make a case distinction on whether the type of `EId i` is `Type_int` or `Type_double`
-    
+compileExp n (EIncr id@(EId i)) = do
+   ty <- getType id
+   s_e1 <- compileExp Nested (id)
+   varName <- getVarName i
+   return $
+        if ty == Type_int then s_e1 ++ [s_i32_const 1, s_i32_add, s_local_set varName] else 
+            s_e1 ++ [s_f64_const 1, s_f64_add, s_local_set varName]
+
+          
 -- compileExp n (EPIncr id@(EId i)) = do
--- compileExp n (EDecr id@(EId i)) = do
+compileExp n (EDecr id@(EId i)) = do
+   ty <- getType id
+   s_e1 <- compileExp Nested (id)
+   varName <- getVarName i
+   return $
+        if ty == Type_int then s_e1 ++ [s_i32_const 1, s_i32_sub, s_local_set varName] else 
+            s_e1 ++ [s_f64_const 1, s_f64_sub, s_local_set varName]
+
 -- compileExp n (EPDecr id@(EId i)) = do
 
 -- for the following use `compileArith`
-{-
-compileExp _ (ETimes e1 e2) =  
-compileExp _ (EDiv e1 e2)   =  
-compileExp _ (EPlus e1 e2)  =  
-compileExp _ (EMinus e1 e2) =  
-compileExp _ (ELt e1 e2)    =  
-compileExp _ (EGt e1 e2)    =  
-compileExp _ (ELtEq e1 e2)  =  
-compileExp _ (EGtEq e1 e2)  =  
-compileExp _ (EEq e1 e2)    =  
-compileExp _ (ENEq e1 e2)   =  
--}
-
 compileExp n (ETimes e1 e2) = compileArith e1 e2 s_i32_mul s_f64_mul
 compileExp n (EDiv e1 e2) = compileArith e1 e2 s_i32_div_s s_f64_div
 compileExp n (EPlus e1 e2) = compileArith e1 e2 s_i32_add s_f64_add
@@ -433,7 +443,7 @@ compileExp _ (EOr e1 e2) = do
 
 
 -- compileExp n (EAss (EId i) e) = do
-    -- use s_local_tee and s_local_set
+    -- use l and s_local_set
         
 compileExp n (ETyped e _) = compileExp n e
 
