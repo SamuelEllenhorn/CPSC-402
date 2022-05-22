@@ -964,9 +964,182 @@ mov     eax, DWORD PTR [rbp-8]
 \end{lstlisting}
 The division operator uses a similar algorithm to that of the modulo.  The 3 function calls shr, mov and sar are called in a similar way to modulo. Interestingly, the command cdq is called after. The function call cdq can be used to produce a quadword dividend from a doubleword before doubleword division. In this case, it doubles the size of eax. The last three lines of assembly are also comparable to those in the modulo. The final result is stored in the original location as this is a re-declaration of num.
 
+Combining the features previously discussed will result in assembly that is essentially a combination of the previous functions. With the capabilities discussed so far, one can created many basic functions of a programming language. With that in mind, in order to have a fully operable palindrome.cc, some other basic functions must be discussed. These functions will allow for printing and important statements as well as some other utilities. Below is the full palindrom.cc program along with the corresponding Assembly level code. The full assembly code is available on bottom of this page:
+
 
 
 \medskip\noindent
+\textbf{Palindrome.cc}
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+int main()
+{
+     int n, num, digit, rev = 0;
+     cout << "Enter a positive number: ";
+     cin >> num;
+     n = num;
+     do
+     {
+         digit = num % 10;
+         rev = (rev * 10) + digit;
+         num = num / 10;
+     } while (num != 0);
+     cout << " The reverse of the number is: " << rev << endl;
+     if (n == rev)
+         cout << " The number is a palindrome.";
+     else
+         cout << " The number is not a palindrome.";
+    return 0;
+}
+\end{lstlisting}
+
+One unique feature of this assembly code is that the strings are each declared in separate labels at the top of the file. This allows them to be referred to later. This can be seen in this section of the code:
+\begin{lstlisting}
+LC0:
+        .string "Enter a positive number: "
+.LC1:
+        .string " The reverse of the number is: "
+.LC2:
+        .string " The number is a palindrome."
+.LC3:
+        .string " The number is not a palindrome."
+        
+\end{lstlisting}
+A second feature which needs to be discussed is the use of the print statement. The first print statement corresponds to the following three lines of assembly code:
+
+\begin{lstlisting}
+        mov     esi, OFFSET FLAT:.LC0
+        mov     edi, OFFSET FLAT:_ZSt4cout
+        call    std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)
+\end{lstlisting} 
+
+In the first mov statement, the string stored at label .LC0 is stored into register esi. The second mov statement corresponds to utilities that are needed before a function call. Lastly, The call instruction is used to call a function. The call instruction pushes the address immediately after itself on the stack. This will allow the computer to print the string stored at .LC0 while not loosing its place on the stack. The program palindrome.cc produces the following assembly code:
+        
+\textbf{Full Assembly Code:}
+
+\begin{lstlisting}
+LC0:
+        .string "Enter a positive number: "
+.LC1:
+        .string " The reverse of the number is: "
+.LC2:
+        .string " The number is a palindrome."
+.LC3:
+        .string " The number is not a palindrome."
+        
+main:
+        push    rbp
+        mov     rbp, rsp
+        sub     rsp, 16
+        mov     DWORD PTR [rbp-4], 0
+        mov     esi, OFFSET FLAT:.LC0
+        mov     edi, OFFSET FLAT:_ZSt4cout
+        call    std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)
+        lea     rax, [rbp-16]
+        mov     rsi, rax
+        mov     edi, OFFSET FLAT:_ZSt3cin
+        call    std::basic_istream<char, std::char_traits<char> >::operator>>(int&)
+        mov     eax, DWORD PTR [rbp-16]
+        mov     DWORD PTR [rbp-8], eax
+.L2:
+        mov     edx, DWORD PTR [rbp-16]
+        movsx   rax, edx
+        imul    rax, rax, 1717986919
+        shr     rax, 32
+        sar     eax, 2
+        mov     ecx, edx
+        sar     ecx, 31
+        sub     eax, ecx
+        mov     DWORD PTR [rbp-12], eax
+        mov     ecx, DWORD PTR [rbp-12]
+        mov     eax, ecx
+        sal     eax, 2
+        add     eax, ecx
+        add     eax, eax
+        sub     edx, eax
+        mov     DWORD PTR [rbp-12], edx
+        mov     edx, DWORD PTR [rbp-4]
+        mov     eax, edx
+        sal     eax, 2
+        add     eax, edx
+        add     eax, eax
+        mov     edx, eax
+        mov     eax, DWORD PTR [rbp-12]
+        add     eax, edx
+        mov     DWORD PTR [rbp-4], eax
+        mov     eax, DWORD PTR [rbp-16]
+        movsx   rdx, eax
+        imul    rdx, rdx, 1717986919
+        shr     rdx, 32
+        mov     ecx, edx
+        sar     ecx, 2
+        cdq
+        mov     eax, ecx
+        sub     eax, edx
+        mov     DWORD PTR [rbp-16], eax
+        mov     eax, DWORD PTR [rbp-16]
+        test    eax, eax
+        jne     .L2
+        mov     esi, OFFSET FLAT:.LC1
+        mov     edi, OFFSET FLAT:_ZSt4cout
+        call    std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)
+        mov     rdx, rax
+        mov     eax, DWORD PTR [rbp-4]
+        mov     esi, eax
+        mov     rdi, rdx
+        call    std::basic_ostream<char, std::char_traits<char> >::operator<<(int)
+        mov     esi, OFFSET FLAT:_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_
+        mov     rdi, rax
+        call    std::basic_ostream<char, std::char_traits<char> >::operator<<(std::basic_ostream<char, std::char_traits<char> >& (*)(std::basic_ostream<char, std::char_traits<char> >&))
+        mov     eax, DWORD PTR [rbp-8]
+        cmp     eax, DWORD PTR [rbp-4]
+        jne     .L3
+        mov     esi, OFFSET FLAT:.LC2
+        mov     edi, OFFSET FLAT:_ZSt4cout
+        call    std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)
+        jmp     .L4
+.L3:
+        mov     esi, OFFSET FLAT:.LC3
+        mov     edi, OFFSET FLAT:_ZSt4cout
+        call    std::basic_ostream<char, std::char_traits<char> >& std::operator<< <std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*)
+.L4:
+        mov     eax, 0
+        leave
+        ret
+-------------------------Generated by Import Statements--------------------------------------
+__static_initialization_and_destruction_0(int, int):
+        push    rbp
+        mov     rbp, rsp
+        sub     rsp, 16
+        mov     DWORD PTR [rbp-4], edi
+        mov     DWORD PTR [rbp-8], esi
+        cmp     DWORD PTR [rbp-4], 1
+        jne     .L8
+        cmp     DWORD PTR [rbp-8], 65535
+        jne     .L8
+        mov     edi, OFFSET FLAT:_ZStL8__ioinit
+        call    std::ios_base::Init::Init() [complete object constructor]
+        mov     edx, OFFSET FLAT:__dso_handle
+        mov     esi, OFFSET FLAT:_ZStL8__ioinit
+        mov     edi, OFFSET FLAT:_ZNSt8ios_base4InitD1Ev
+        call    __cxa_atexit
+.L8:
+        nop
+        leave
+        ret
+_GLOBAL__sub_I_main:
+        push    rbp
+        mov     rbp, rsp
+        mov     esi, 65535
+        mov     edi, 1
+        call    __static_initialization_and_destruction_0(int, int)
+        pop     rbp
+        ret
+\end{lstlisting}
+
+Lastly, the code generated below the green dashed comment is what is generated by the two import statements. The code consists of several labels which serve as utilities for basics functionality of those libraries.
 
  
 \section{Conclusions}\label{conclusions}
@@ -983,6 +1156,10 @@ If there is one idea to take away from this course it is to be thankful that the
 \bibitem[oracle]{docs}
 	
 \href{https://docs.oracle.com/cd/E19455-01/806-3773/instructionset-27/index.html}{oracle link}
+
+
+\bibitem[aldeid]{docs}
+\href{https://www.aldeid.com/wiki/X86-assembly/Instructions/call}{aldeid}
 
 \end{thebibliography}
 
