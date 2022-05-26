@@ -45,7 +45,7 @@ s_br l = List [Atom "br", Atom $ show l]
 s_br_if l = List [Atom "br_if", Atom $ show l]
 
 -- first put the condition on the stack, then use s_if_then_else
-s_if_then_else :: Maybe SExp -> [SExp] -> [SExp] -> SExp
+s_if_then_else :: Maybe SExp -> [SExp] -> [SExp] -> SExp --first is type, second is the, third is else clause
 s_if_then_else ty then_case else_case = 
     List $ [Atom "if"] ++ s_result ty ++
         [List (Atom "then":then_case),
@@ -285,28 +285,93 @@ compileStm (SReturn e) = do
 
 compileStm SReturnVoid = return []
 
---compileStm (SWhile cond s) = do
-    --s_cond <- compileExp Nested s_cond
 
+
+
+compileStm (SWhile cond s) = do
+-- compile condition
+    w_cond <- compileExp Nested cond
+-- use pushPop to compile statement
+    st1 <- pushPop (compileStm s)
+    return $
+        [s_block (w_cond ++ [s_br_if 1] ++ [s_loop (st1 ++ w_cond ++ [s_br_if 0])])] --may need to invert condition
+        --[s_block ([s_loop (st1 ++ w_cond ++ [s_br_if 0])] ++ w_cond ++ [s_br_if 1] ++)]
+        --int x 
+        -- while (x<0){  
+        --     x++;
+        -- } 
+        --run condition, if true, brIf to top of loop
+
+        --sWhile
+    -- to fill in the ... proceed as in fibonacci.wat
+    --s_loop, s_block, s_module :: [SExp] -> SExp
+    --s_br_if
+
+--     w_cond <- compileExp Nested cond
+--     --conditionType <- getType s_cond
+--     w_statement <- compileStm s
+--     if w_cond == 1 then  else []
+--         pushPop s
+--         return [ s_block [s_loop ...]] 
+    -- $printDouble (param f64) 
+    -- to fill in the ... proceed as in fibonacci.wat
     -- compile condition
     -- use pushPop to compile statement pushPop :: MonadState Env m => m a -> m a
-    --pushPop s_cond
-    --return [ s_block [s_loop $printDouble (param f64) ]] 
+    
+    -- compile condition
+    -- use pushPop to compile statement
+    -- return `[ s_block [s_loop ...]]` 
     -- to fill in the ... proceed as in fibonacci.wat
 
--- compileStm (SBlock stms) = do
-    -- use pushpop as for SWhile
+
+-- (block
+--    (loop
+--     (local.get $ihi$0)
+--     (local.get $imx$0)
+--     i32.lt_s
+--     i32.eqz
+--     (br_if 1)
+--     (local.get $ihi$0)
+--     (call $printInt)
+--     (local.get $ilo$0)
+--     (local.get $ihi$0)
+--     i32.add
+--     (local.set $ihi$0)
+--     (local.get $ihi$0)
+--     (local.get $ilo$0)
+--     i32.sub
+--     (local.set $ilo$0)
+--     (br 0)
+--    )
+--   )
+
+
+compileStm (SBlock stms) = do    
+    -- use pushpop as for SWhile{int x = 0;
+                                --x++; --}
     -- use `mapM` to iterate `compileStm` over the list `stms`
+    compdStms <- pushPop $  mapM compileStm stms  --compileStm :: MonadState Env m => Stm -> m [SExp]
+    return $
+        concat compdStms
     -- you may want to use `concat :: [[a]] -> [a]` (hoogle it) to flatten a list of lists of statements
+   
     -- no need to use `s_block` since C++ blocks are just a way to do variable shadowing, which we already took care of with `collectDecls`
 
--- compileStm s@(SIfElse cond s1 s2) = do
+compileStm s@(SIfElse cond s1 s2) = do
     -- compile the condition
+    condition <- compileExp Nested cond
+    t1 <- getReturn s
+    let mType = compileType t1
     -- use pushpop to compile the branches
+    st1 <- pushPop (compileStm s1)
+    st2 <- pushPop (compileStm s2)
     -- use getReturn to get the type of the if/then/else block
+    return $
+        condition ++ [s_if_then_else mType st1 st2] --s_if_then_else :: Maybe SExp -> [SExp] -> [SExp] -> SExp
     -- put the condition on the stack, then use s_if_then_else
-
+    
 -- delete the line below after implementing the above
+
 compileStm _ = return []
 
 -- computes the return type of the given statement.
