@@ -459,7 +459,7 @@ compileExp n x@(EApp (Id i) args) = do
             [s_call i] ++
             if n == TopLevel && ty /= Type_void then [s_drop] else []
 
--- compileExp n (EIncr id@(EId i)) = do
+
     -- make a case distinction on whether the type of `EId i` is `Type_int` or `Type_double`
 compileExp n (EIncr id@(EId i)) = do
    ty <- getType id
@@ -470,7 +470,14 @@ compileExp n (EIncr id@(EId i)) = do
             s_e1 ++ [s_f64_const 1, s_f64_add, s_local_set varName]
 
           
--- compileExp n (EPIncr id@(EId i)) = do
+compileExp n (EPIncr id@(EId i)) = do
+    ty <- getType id
+    s_e1 <- compileExp Nested (id)
+    varName <- getVarName i
+    return $
+        if ty == Type_int then [s_i32_const 1, s_i32_add, s_local_set varName] ++ s_e1 else 
+           [s_f64_const 1, s_f64_add, s_local_set varName] ++  s_e1
+
 compileExp n (EDecr id@(EId i)) = do
    ty <- getType id
    s_e1 <- compileExp Nested (id)
@@ -479,7 +486,13 @@ compileExp n (EDecr id@(EId i)) = do
         if ty == Type_int then s_e1 ++ [s_i32_const 1, s_i32_sub, s_local_set varName] else 
             s_e1 ++ [s_f64_const 1, s_f64_sub, s_local_set varName]
 
--- compileExp n (EPDecr id@(EId i)) = do
+compileExp n (EPDecr id@(EId i)) = do
+    ty <- getType id
+    s_e1 <- compileExp Nested (id)
+    varName <- getVarName i
+    return $
+        if ty == Type_int then [s_i32_const 1, s_i32_sub, s_local_set varName] ++ s_e1 else 
+            [s_f64_const 1, s_f64_sub, s_local_set varName] ++ s_e1
 
 -- for the following use `compileArith`
 compileExp n (ETimes e1 e2) = compileArith e1 e2 s_i32_mul s_f64_mul
