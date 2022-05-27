@@ -323,7 +323,7 @@ compileStm (SWhile cond s) = do
     -- return `[ s_block [s_loop ...]]` 
     -- to fill in the ... proceed as in fibonacci.wat
 
-
+--fib asm
 -- (block
 --    (loop
 --     (local.get $ihi$0)
@@ -520,8 +520,13 @@ compileExp _ (EOr e1 e2) = do
     return $ compileExp_1 ++ [s_i32_eqz] ++ [s_if_then_else s_i32 compileExp_2 [s_i32_const 1]]
 
 
--- compileExp n (EAss (EId i) e) = do
+compileExp n (EAss (EId i) e) = do
     -- use l and s_local_set
+    varName <- getVarName i
+    expVal <- compileExp Nested e
+    return $
+        expVal ++ [s_local_set varName]
+
         
 compileExp n (ETyped e _) = compileExp n e
 
